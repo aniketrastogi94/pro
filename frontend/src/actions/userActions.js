@@ -3,6 +3,7 @@ import {
   USER_DETAILS_FAIL,
   USER_DETAILS_REQUEST,
   USER_DETAILS_SUCCESS,
+  USER_LOGIN_GOOGLE_SUCCESS,
   USER_LOGIN_FAIL,
   USER_LOGIN_REQUEST,
   USER_LOGIN_SUCCESS,
@@ -24,6 +25,7 @@ import {
   USER_UPDATE_FAIL,
   USER_UPDATE_SUCCESS,
   USER_UPDATE_REQUEST,
+  RESET_PASSWORD
 } from '../constants/userConstants'
 import { ORDER_LIST_MY_RESET } from '../constants/orderConstants'
 
@@ -58,6 +60,38 @@ export const login = (email, password) => async (dispatch) => {
         error.response && error.response.data.message
           ? error.response.data.message
           : error.message,
+    })
+  }
+}
+
+export const loginWithGoogle=(tokenId)=>async (dispatch)=>{
+  try{
+    dispatch({
+      type:USER_LOGIN_REQUEST
+    })
+    const config={
+      headers:{
+        'Content-Type':'application/json'
+      }
+    }
+    const {data}=await axios.post('/api/users/loginWithGoogle',{tokenId},config)
+    dispatch({
+      type:USER_LOGIN_GOOGLE_SUCCESS,
+      payload:data
+    })
+    dispatch({
+      type: USER_REGISTER_SUCCESS,
+      payload: data,
+    })
+    dispatch({
+      type: USER_LOGIN_SUCCESS,
+      payload: data,
+    })
+    localStorage.setItem('userInfo',JSON.stringify(data))
+  }catch(error){
+    dispatch({
+      type:USER_LOGIN_FAIL,
+      payload:error.response && error.response.data.message ? error.response.data.message :error.message
     })
   }
 }
@@ -270,5 +304,22 @@ export const updateUser = (user) => async (dispatch, getState) => {
           ? error.response.data.message
           : error.message,
     })
+  }
+}
+
+export const resetPassword=(email)=>async (dispatch)=>{
+  try{
+    const config={
+      headers:{
+        'Content-Type':'application/json'
+      }
+    }
+    const {data}=await axios.post('/api/users/reset',{email},config);
+    dispatch({
+      type:RESET_PASSWORD,
+      payload:data
+    });
+  }catch(error){
+    console.log(error)
   }
 }

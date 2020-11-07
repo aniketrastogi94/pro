@@ -18,10 +18,10 @@ const Header = () => {
 
   return (
     <header>
-      <Navbar bg='dark' variant='dark' expand='lg' collapseOnSelect>
+      <Navbar bg='info' variant='dark' expand='lg' collapseOnSelect>
         <Container>
           <LinkContainer to='/'>
-            <Navbar.Brand>ProShop</Navbar.Brand>
+            <Navbar.Brand>BuyMyBooks</Navbar.Brand>
           </LinkContainer>
           <Navbar.Toggle aria-controls='basic-navbar-nav' />
           <Navbar.Collapse id='basic-navbar-nav'>
@@ -42,11 +42,19 @@ const Header = () => {
                   </NavDropdown.Item>
                 </NavDropdown>
               ) : (
+                <NavDropdown title="Sign In" >
                 <LinkContainer to='/login'>
-                  <Nav.Link>
-                    <i className='fas fa-user'></i> Sign In
-                  </Nav.Link>
+                  <NavDropdown.Item>
+                    <i className='fas fa-user'/><span> Login</span> 
+                  </NavDropdown.Item>
                 </LinkContainer>
+                <LinkContainer to='/register'>
+                  <NavDropdown.Item>
+                    <i className='fas fa-user'/><span> Register</span>
+                  </NavDropdown.Item>
+                </LinkContainer>
+                </NavDropdown>
+                
               )}
               {userInfo && userInfo.isAdmin && (
                 <NavDropdown title='Admin' id='adminmenu'>

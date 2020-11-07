@@ -1,6 +1,63 @@
 import asyncHandler from 'express-async-handler'
 import generateToken from '../utils/generateToken.js'
 import User from '../models/userModel.js'
+import nodemailer from 'nodemailer'
+import sendgrid from 'nodemailer-sendgrid-transport'
+import crypto from 'crypto'
+import { OAuth2Client } from 'google-auth-library'
+import bcrypt from 'bcryptjs';
+
+const client=new OAuth2Client("403380080270-6rpdj7ll4gkvlrvi4s03imtk3e487nuo.apps.googleusercontent.com");
+
+const transporter=nodemailer.createTransport(sendgrid({
+  auth:{
+    api_key:"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"
+  }
+}));
+
+
+const ResetPassword=asyncHandler(async (req,res)=>{
+  crypto.randomBytes(32,(err,buffer)=>{
+    if(err){
+      console.log(err);
+    }
+    const token=buffer.toString("hex");
+    const {email}=req.body;
+    User.findOneAndUpdate({email}).then(user=>{
+      if(!user) return res.status(422).json({errors:"User doesn't excist"});
+      user.resetToken=token;
+      user.expireToken=Date.now()+360000;
+      user.save().then((result)=>{
+        transporter.sendMail({
+          to:user.email,
+          from:"chamolirohit22@gmail.com",
+          subject:"Reset Password",
+          html:`
+            <p>You Requested for reset password</p>
+            <h5>Click on this link <a href="http://localhost:3000/reset/${token}" >Link</a>to reset your password</h5>
+          `
+        });
+        res.json({msg:"Check your email"});
+      })
+    })
+  })
+});
+
+const NewPassword=asyncHandler(async (req,res)=>{
+  const newPassword=req.body.password;
+  const sentToken=req.body.token;
+  User.findOne({resetToken:sentToken}).then(user=>{
+    if(!user) return res.status(422).json({error:"Try again session expired"});
+    bcrypt.hash(newPassword,12).then(hashedP=>{
+      user.password=hashedP;
+      user.resetToken=undefined;
+      user.expireToken=undefined;
+      user.save().then((result)=>{
+        res.json({msg:"Password Updated Successfully"});
+      })
+    })
+  })
+})
 
 // @desc    Auth user & get token
 // @route   POST /api/users/login
@@ -21,6 +78,49 @@ const authUser = asyncHandler(async (req, res) => {
   } else {
     res.status(401)
     throw new Error('Invalid email or password')
+  }
+})
+
+const googleLogin=asyncHandler(async (req,res)=>{
+  const {tokenId}=req.body;
+  let response=await client.verifyIdToken({idToken:tokenId,audience:"403380080270-6rpdj7ll4gkvlrvi4s03imtk3e487nuo.apps.googleusercontent.com"});
+  const {email,email_verified,name}=response.payload;
+  if(email_verified){
+    try {
+      const user=await User.findOne({email});
+      if(user){
+        res.json({
+          _id:user._id,
+          name:user.name,
+          email:user.email,
+          isAdmin:user.isAdmin,
+          token:generateToken(user._id)
+        })
+      }
+      else{
+        let password=email;
+        const user=await User.create({
+          name,
+          email,
+          password
+        });
+        if(user){
+          res.json({
+            _id:user._id,
+            name:user.name,
+            email:user.email,
+            isAdmin:user.isAdmin,
+            token:generateToken(user._id)
+          })
+        }else{
+          res.status(400)
+          throw new error('Invalid user data')
+        }
+      }
+    } catch (err) {
+      res.status(400)
+      throw new error('Invalid user data')
+    }
   }
 })
 
@@ -175,4 +275,7 @@ export {
   deleteUser,
   getUserById,
   updateUser,
-}
+  googleLogin,
+  ResetPassword,
+  NewPassword
+};

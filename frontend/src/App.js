@@ -18,6 +18,7 @@ import UserEditScreen from './screens/UserEditScreen'
 import ProductListScreen from './screens/ProductListScreen'
 import ProductEditScreen from './screens/ProductEditScreen'
 import OrderListScreen from './screens/OrderListScreen'
+import Reset from './screens/ResetPassword';
 
 const App = () => {
   return (
@@ -41,6 +42,7 @@ const App = () => {
             component={ProductListScreen}
             exact
           />
+          <Route path='/reset' component={Reset} exact/>
           <Route
             path='/admin/productlist/:pageNumber'
             component={ProductListScreen}

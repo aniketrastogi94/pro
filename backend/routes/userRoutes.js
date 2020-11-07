@@ -9,15 +9,23 @@ import {
   deleteUser,
   getUserById,
   updateUser,
+  googleLogin,
+  ResetPassword
 } from '../controllers/userController.js'
 import { protect, admin } from '../middleware/authMiddleware.js'
 
+
+router
+  .route('/reset')
+  .post(ResetPassword);
 router
   .route('/')
   .post(registerUser)
   .get(protect, admin, getUsers)
 router
   .post('/login', authUser)
+router
+  .post('/loginWithGoogle',googleLogin);
 router
   .route('/profile')
   .get(protect, getUserProfile)

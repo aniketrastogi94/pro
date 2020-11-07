@@ -5,7 +5,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import Message from '../components/Message'
 import Loader from '../components/Loader'
 import FormContainer from '../components/FormContainer'
-import { login } from '../actions/userActions'
+import { login,loginWithGoogle } from '../actions/userActions'
+import GoogleLogin from 'react-google-login';
 
 const LoginScreen = ({ location, history }) => {
   const [email, setEmail] = useState('')
@@ -28,7 +29,13 @@ const LoginScreen = ({ location, history }) => {
     e.preventDefault()
     dispatch(login(email, password))
   }
-
+  const responseSuccess=(response)=>{
+    console.log(response.tokenId);
+    dispatch(loginWithGoogle(response.tokenId));
+  }
+  const responseFailure=(response)=>{
+    console.log(response);
+  }
   return (
     <FormContainer>
       <h1>Sign In</h1>
@@ -54,10 +61,22 @@ const LoginScreen = ({ location, history }) => {
             onChange={(e) => setPassword(e.target.value)}
           ></Form.Control>
         </Form.Group>
-
+        <Form.Group>
+          <Form.Label>Forgot Password? </Form.Label>
+          <Link to='/reset'> Reset Password</Link>
+        </Form.Group>
+        
         <Button type='submit' variant='primary'>
           Sign In
         </Button>
+        <GoogleLogin
+          clientId="403380080270-6rpdj7ll4gkvlrvi4s03imtk3e487nuo.apps.googleusercontent.com"
+          buttonText="SIGN IN WITH GOOGLE"
+          onSuccess={responseSuccess}
+          onFailure={responseFailure}
+          cookiePolicy={'single_host_origin'}
+          className='p-1 mx-2 bg-primary text-light'
+        />
       </Form>
 
       <Row className='py-3'>
